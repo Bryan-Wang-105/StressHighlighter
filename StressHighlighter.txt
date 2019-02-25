@@ -1,0 +1,64 @@
+% Bryan Wang
+% Pixel Processesor - FEA VERSION
+
+% Removes Warnings
+warning('off', 'Images:initSize:adjustingMag');
+
+% Workspace Clearing
+clear
+clc
+
+% New Array for export
+A_Finished = zeros(0,'uint8');
+
+% Reads in colored photo RGB Values
+PhotoC = imread('FEAA.png');
+
+% Creates Black and White Values
+PhotoBW = rgb2gray(PhotoC);
+
+% Sizes pixel dimensions of photo
+Size = size(PhotoC);
+
+% Counter
+StressCount = 0;
+PartCount = 0;
+DebugWhy = 0;
+
+% Iteration through rows / coloumns
+for i = 1:(Size(1))
+    for j = 1:(Size(2))
+        % Finding pixels that only include the part
+        if PhotoC(i,j,1)~= 255 && PhotoC(i,j,2) ~= 255 && PhotoC(i,j,3) ~= 255
+            PartCount = PartCount + 1;
+        end
+        % If the Green value is less than 180 and Blue less than 8
+        % set the new photo's pixel RGB Values to these values
+        if PhotoC(i,j,1) >= 50 && PhotoC(i,j,2) <= 160 && PhotoC(i,j,3) <= 50
+            A_Finished(i,j,1) = PhotoC(i,j,1);
+            A_Finished(i,j,2) = PhotoC(i,j,2);
+            A_Finished(i,j,3) = PhotoC(i,j,3);
+            StressCount = StressCount + 1;
+        else
+            % If it is not in desired range, black/white pixel is encoded
+            A_Finished(i,j,1) = PhotoBW(i,j);
+            A_Finished(i,j,2) = PhotoBW(i,j);
+            A_Finished(i,j,3) = PhotoBW(i,j);
+        end
+    end
+end
+
+% Outputs finished Figure
+imwrite(A_Finished, 'A_Finished.png');
+A_Finished = imread('A_Finished.png');
+PairDisplay = [PhotoC; A_Finished];
+imshow(PairDisplay)
+
+
+% Output Message
+fprintf('Percentage of critical stress areas: %.1f%%\n', 100*StressCount/PartCount)
+if (100*StressCount/PartCount) >= 20
+    fprintf('Tolerance Limit Exceeded: Reject Part\n');
+else
+    fprintf('Tolerance Limit Not Reached: Accept Part\n');
+end
